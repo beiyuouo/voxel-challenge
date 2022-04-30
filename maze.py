@@ -6,58 +6,85 @@ scene = Scene(exposure=1)
 scene.set_floor(-0.05, (1.0, 1.0, 1.0))
 scene.set_background_color((1.0, 0, 0))
 
+height, width = 10, 10
+maze = ti.field(dtype=ti.i32, shape=(height, width))
+u_parent = ti.field(dtype=ti.i32, shape=(height * width))
+wall_set = ti.field(dtype=ti.i32, shape=(height * width, 2))
+dirs = [vec2(0, 1), vec2(1, 0), vec2(0, -1), vec2(-1, 0)]
 
-class DisjointSet(object):
+dirs = ti.Vector.field(2, dtype=ti.f32, shape=(4))
+dirs[0], dirs[1], dirs[2], dirs[3] = vec2(0, 1), vec2(1, 0), vec2(0, -1), vec2(-1, 0)
 
-    def __init__(self, n):
-        self.parent = [0 for _ in range(n)]
-        for i in range(n):
-            self.parent[i] = i
-
-    def find(self, x):
-        if self.parent[x] == x:
-            return x
-        else:
-            self.parent[x] = self.find(self.parent[x])
-            return self.parent[x]
-
-    def union(self, x, y):
-        x, y = self.find(x), self.find(y)
-        if x != y:
-            self.parent[x] = y
+abled = ti.field(dtype=ti.i32, shape=(4, 2))
 
 
+@ti.func
+def get_parent(x):
+    if u_parent[x] == x:
+        return x
+    u_parent[x] = get_parent(u_parent[x])
+    return u_parent[x]
+
+
+@ti.func
+def union(x, y):
+    u_parent[get_parent(x)] = get_parent(y)
+
+
+@ti.func
 def generate_maze(height, width, start_pos, end_pos):
-    maze_ = [[1 for _ in range(width)] for _ in range(height)]
-    maze_[start_pos[0]][start_pos[1]] = 0
-    maze_[end_pos[0]][end_pos[1]] = 0
-    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    maze[start_pos[0], start_pos[1]] = 0
+    maze[end_pos[0], end_pos[1]] = 0
 
-    union_set = DisjointSet(width * height)
-    wall_set = set()
+    for i in range(height * width):
+        u_parent[i] = i
+
+    itr = 0
     for i in range(height):
         for j in range(width):
-            if maze_[i][j] == 1:
-                wall_set.add((i, j))
+            if maze[i, j] == 1:
+                wall_set[itr, 0], wall_set[itr, 1] = i, j
+                itr += 1
 
-    while len(wall_set) > 0:
-        pos = wall_set.pop()
-        abled = []
-        for dir in dirs:
-            pos_ = (pos[0] + dir[0], pos[1] + dir[1])
-            if pos_[0] < 0 or pos_[0] >= height or pos_[1] < 0 or pos_[1] >= width:
-                continue
-            abled.append((pos_, union_set.find(pos_[0] * width + pos_[1])))
-        if len(abled) <= 1:
-            continue
-        for i in range(1, len(abled)):
-            if union_set.find(abled[i][1]) != union_set.find(abled[0][1]):
-                union_set.union(abled[i][1], abled[0][1])
-                maze_[pos[0]][pos[1]] = 0
+    # shuffle
+    for i in range(itr):
+        x, y = int(ti.random() * itr), int(ti.random() * itr)
+        temp = vec2(wall_set[x, 0], wall_set[x, 1])
+        wall_set[x, 0], wall_set[x, 1] = wall_set[y, 0], wall_set[y, 1]
+        wall_set[y, 0], wall_set[y, 1] = temp.x, temp.y
 
-    return maze_
+    for i in range(itr):
+        pos = vec2(wall_set[i, 0], wall_set[i, 1])
+        itr = 0
+        for idx in range(4):
+            pos_ = pos + dirs[idx]
+            if pos_.x >= 0 and pos_.x < height and pos_.y >= 0 and pos_.y < width:
+                abled[itr, 0], abled[itr, 1] = pos_.x, pos_.y
+                itr += 1
+        if itr > 1:
+            for it in range(1, itr):
+                if get_parent(abled[it, 0] * width +
+                              abled[it, 1]) != get_parent(abled[0, 0] * width + abled[0, 1]):
+                    union(abled[it, 0] * width + abled[it, 1], abled[0, 0] * width + abled[0, 1])
+                    maze[pos.x, pos.y] = 0
 
 
-maze = generate_maze(10, 10, (0, 0), (9, 9))
-for _ in maze:
-    print(_)
+@ti.func
+def build_wall(pos, dir, len, color, color_noise):
+    for i in range(len):
+        scene.set_voxel(pos + dir * i, 1, color + color_noise * ti.random())
+
+
+@ti.kernel
+def initialize_voxels():
+    generate_maze(10, 10, (0, 0), (9, 9))
+    for i, j in ti.ndrange(10, 10):
+        if maze[i][j] == 1:
+            scene.set_voxel((i, 1, j), 1, (0, 0, 0))
+        else:
+            scene.set_voxel((i, 1, j), 1, (1, 1, 1))
+
+
+initialize_voxels()
+
+scene.finish()
