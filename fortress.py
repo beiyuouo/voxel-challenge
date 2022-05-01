@@ -47,8 +47,8 @@ def build_door(pos, height, radius, color, color_noise, prob=1, mat=1):
 
 @ti.func
 def build_fire(pos):
-    scene.set_voxel(pos, 1, (1, 0, 0))
-    scene.set_voxel(pos + vec3(0, 1, 0), 1, (1, 1, 0))
+    scene.set_voxel(pos, 2, vec3(1, 1, 0))
+    scene.set_voxel(pos + vec3(0, -1, 0), 1, vec3(0.43, 0.352, 0.156))
 
 
 @ti.kernel
@@ -74,12 +74,22 @@ def initialize_voxels():
     build_door(vec3(-d_, 8, d_ + 3), 2, 2, vec3(0.95, 0.98, 0.9), vec3(0), 1, 1)
     build_door(vec3(d_, 8, d_ + 4), 2, 2, vec3(0.95, 0.98, 0.9), vec3(0), 1, 0)
     build_door(vec3(d_, 8, d_ + 3), 2, 2, vec3(0.95, 0.98, 0.9), vec3(0), 1, 1)
+    build_fire(vec3(d_, 8, d_ + 4))
+    build_fire(vec3(-d_, 8, d_ + 4))
 
     build_block(vec3(-d_ - 9, -1, -d_ - 9), vec3(d_ + 9, -1, d_ + 9), vec3(0.85, 1, 0.44),
                 vec3(0.1), 0.8)
     build_block(vec3(-d_ - 9, -2, -d_ - 9), vec3(d_ + 9, -2, d_ + 9), vec3(0.58, 0.5, 0.31),
                 vec3(0.03), 0.8)
     build_block(vec3(-4, -1, d_ - 2), vec3(4, -1, d_ + 9), vec3(0.6, 0.6, 0.6), vec3(0.03), 0.8)
+
+    build_fire(vec3(d_ // 2, 7, d_ + 3))
+    build_fire(vec3(-d_ // 2, 7, d_ + 3))
+    build_fire(vec3(9, 13, 9))
+    build_fire(vec3(-9, 13, 9))
+
+    scene.set_voxel(vec3(-1, 4, d_), 1, vec3(0.43, 0.352, 0.156) + vec3(0.2))
+    scene.set_voxel(vec3(1, 4, d_), 1, vec3(0.43, 0.352, 0.156) + vec3(0.2))
 
 
 initialize_voxels()

@@ -1,8 +1,6 @@
 # <a name="title">Taichi Voxel Challenge</a>
 
-## Voxel Pac-man
-
-`pac-man.py`
+## Voxel Pac-man in `pac-man.py`
 
 <p align="center">
 <img src="images/demo-pac-man-1.jpg" width="75%"></img>
@@ -12,7 +10,15 @@
 <img src="images/demo-pac-man-2.jpg" width="75%"></img>
 </p>
 
-> Figure: result of `python3 example6.py`. Please replace the image above (`demo.jpg`) with yours, so that other people can immediately see your results :-)
+## Voxel Foretress in `fortress.py`
+
+<p align="center">
+<img src="images/demo-fortress-1.jpg" width="75%"></img>
+</p>
+
+<p align="center">
+<img src="images/demo-fortress-2.jpg" width="75%"></img>
+</p>
 
 We invite you to create your voxel artwork, by putting your [Taichi](https://github.com/taichi-dev/taichi) code in `main.py`!
 
