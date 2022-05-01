@@ -18,24 +18,14 @@ def set_color_voxel(pos, mat, color, color_noise, prob=1):
 
 
 @ti.func
-def build_fortress(pos, sz1, sz2, height, color, color_noise, shape):
-    if shape == 1:
-        for x, y in ti.ndrange((-sz1, sz1 + 1), (-sz2, sz2 + 1)):
-            if ti.sqrt(x * x + y * y) <= sz1 and ti.sqrt(x * x + y * y) >= sz2 - 1:
-                for z in range(height):
-                    set_color_voxel(pos + vec3(x, z, y), 1, color, color_noise, 0.8)
-                if (x + y) % 4 == 0 or (x + y) % 4 == 1:
-                    set_color_voxel(pos + vec3(x, height, y), 1, color, color_noise)
-            if ti.sqrt(x * x + y * y) <= sz1:
-                set_color_voxel(pos + vec3(x, height - 4, y), 1, color, color_noise, 0.8)
-    else:
-        for x, y in ti.ndrange((-sz1, sz1 + 1), (-sz2, sz2 + 1)):
-            if x == -sz1 or x == sz1 or y == -sz2 or y == sz2:
-                for z in range(height):
-                    set_color_voxel(pos + vec3(x, z, y), 1, color, color_noise, 0.8)
-                if (x + y) % 4 == 0 or (x + y) % 4 == 1:
-                    set_color_voxel(pos + vec3(x, height, y), 1, color, color_noise)
-            set_color_voxel(pos + vec3(x, height - 2, y), 1, color, color_noise, 0.8)
+def build_fortress(pos, sz1, sz2, height, color, color_noise):
+    for x, y in ti.ndrange((-sz1, sz1 + 1), (-sz2, sz2 + 1)):
+        if x == -sz1 or x == sz1 or y == -sz2 or y == sz2:
+            for z in range(height):
+                set_color_voxel(pos + vec3(x, z, y), 1, color, color_noise, 0.8)
+            if (x + y) % 4 == 0 or (x + y) % 4 == 1:
+                set_color_voxel(pos + vec3(x, height, y), 1, color, color_noise)
+        set_color_voxel(pos + vec3(x, height - 2, y), 1, color, color_noise, 0.8)
 
 
 @ti.func
@@ -47,44 +37,43 @@ def build_block(pos1, pos2, color, color_noise, prob=1, mat=1):
 
 
 @ti.func
-def build_door(pos, height, radius, dir, color, color_noise, prob=1, mat=1):
-    if dir == 1:
-        for x, z in ti.ndrange((-radius, radius + 1), (-radius, radius + 1)):
-            if ti.sqrt(x * x + z * z) - 0.8 <= radius:
-                set_color_voxel(pos + vec3(x, z, 0), mat, color, color_noise, prob)
-        for x, z in ti.ndrange((-radius, radius + 1), (-height, 1)):
+def build_door(pos, height, radius, color, color_noise, prob=1, mat=1):
+    for x, z in ti.ndrange((-radius, radius + 1), (-radius, radius + 1)):
+        if ti.sqrt(x * x + z * z) - 0.8 <= radius:
             set_color_voxel(pos + vec3(x, z, 0), mat, color, color_noise, prob)
-    else:
-        for y, z in ti.ndrange((-radius, radius + 1), (-radius, radius + 1)):
-            if ti.sqrt(y * y + z * z) + 0.5 <= radius:
-                set_color_voxel(pos + vec3(0, z, y), mat, color, color_noise, prob)
-        for y, z in ti.ndrange((-radius, radius + 1), (-height, 1)):
-            set_color_voxel(pos + vec3(0, z, y), mat, color, color_noise, prob)
+    for x, z in ti.ndrange((-radius, radius + 1), (-height, 1)):
+        set_color_voxel(pos + vec3(x, z, 0), mat, color, color_noise, prob)
+
+
+@ti.func
+def build_fire(pos):
+    scene.set_voxel(pos, 1, (1, 0, 0))
+    scene.set_voxel(pos + vec3(0, 1, 0), 1, (1, 1, 0))
 
 
 @ti.kernel
 def initialize_voxels():
     d_ = 15
-    build_fortress(vec3(0, 0, 0), 8, 8, 20, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
-    build_fortress(vec3(-d_, 0, -d_), 4, 4, 15, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
-    build_fortress(vec3(d_, 0, -d_), 4, 4, 15, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
-    build_fortress(vec3(-d_, 0, d_), 4, 4, 15, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
-    build_fortress(vec3(d_, 0, d_), 4, 4, 15, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
+    build_fortress(vec3(0, 0, 0), 8, 8, 20, vec3(0.95, 0.98, 0.9), vec3(0.15))
+    build_fortress(vec3(-d_, 0, -d_), 4, 4, 15, vec3(0.95, 0.98, 0.9), vec3(0.15))
+    build_fortress(vec3(d_, 0, -d_), 4, 4, 15, vec3(0.95, 0.98, 0.9), vec3(0.15))
+    build_fortress(vec3(-d_, 0, d_), 4, 4, 15, vec3(0.95, 0.98, 0.9), vec3(0.15))
+    build_fortress(vec3(d_, 0, d_), 4, 4, 15, vec3(0.95, 0.98, 0.9), vec3(0.15))
 
-    build_fortress(vec3(0, 0, -d_), d_, 2, 13, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
-    build_fortress(vec3(0, 0, d_), d_, 2, 13, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
-    build_fortress(vec3(-d_, 0, 0), 2, d_, 13, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
-    build_fortress(vec3(d_, 0, 0), 2, d_, 13, vec3(0.95, 0.98, 0.9), vec3(0.15), 2)
+    build_fortress(vec3(0, 0, -d_), d_, 2, 13, vec3(0.95, 0.98, 0.9), vec3(0.15))
+    build_fortress(vec3(0, 0, d_), d_, 2, 13, vec3(0.95, 0.98, 0.9), vec3(0.15))
+    build_fortress(vec3(-d_, 0, 0), 2, d_, 13, vec3(0.95, 0.98, 0.9), vec3(0.15))
+    build_fortress(vec3(d_, 0, 0), 2, d_, 13, vec3(0.95, 0.98, 0.9), vec3(0.15))
 
     for i in ti.ndrange((d_ - 2, d_ + 3)):
-        build_door(vec3(0, 6, i), 6, 4, 1, vec3(0.6, 0.6, 0.6), vec3(0))
-        build_door(vec3(0, 5, i), 5, 3, 1, vec3(0, 0, 0), vec3(0), 1, 0)
-    build_door(vec3(0, 5, d_), 5, 3, 1, vec3(0.43, 0.352, 0.156), vec3(0))
+        build_door(vec3(0, 6, i), 6, 4, vec3(0.6, 0.6, 0.6), vec3(0))
+        build_door(vec3(0, 5, i), 5, 3, vec3(0, 0, 0), vec3(0), 1, 0)
+    build_door(vec3(0, 5, d_), 5, 3, vec3(0.43, 0.352, 0.156), vec3(0))
 
-    build_door(vec3(-d_, 8, d_ + 4), 2, 2, 1, vec3(0.95, 0.98, 0.9), vec3(0), 1, 0)
-    build_door(vec3(-d_, 8, d_ + 3), 2, 2, 1, vec3(0.95, 0.98, 0.9), vec3(0), 1, 1)
-    build_door(vec3(d_, 8, d_ + 4), 2, 2, 1, vec3(0.95, 0.98, 0.9), vec3(0), 1, 0)
-    build_door(vec3(d_, 8, d_ + 3), 2, 2, 1, vec3(0.95, 0.98, 0.9), vec3(0), 1, 1)
+    build_door(vec3(-d_, 8, d_ + 4), 2, 2, vec3(0.95, 0.98, 0.9), vec3(0), 1, 0)
+    build_door(vec3(-d_, 8, d_ + 3), 2, 2, vec3(0.95, 0.98, 0.9), vec3(0), 1, 1)
+    build_door(vec3(d_, 8, d_ + 4), 2, 2, vec3(0.95, 0.98, 0.9), vec3(0), 1, 0)
+    build_door(vec3(d_, 8, d_ + 3), 2, 2, vec3(0.95, 0.98, 0.9), vec3(0), 1, 1)
 
     build_block(vec3(-d_ - 9, -1, -d_ - 9), vec3(d_ + 9, -1, d_ + 9), vec3(0.85, 1, 0.44),
                 vec3(0.1), 0.8)
@@ -94,5 +83,4 @@ def initialize_voxels():
 
 
 initialize_voxels()
-
 scene.finish()
