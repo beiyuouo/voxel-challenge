@@ -3,10 +3,16 @@ from scene import Scene
 import taichi as ti
 from taichi.math import *
 
-scene = Scene(exposure=1, voxel_edges=0)
-scene.set_floor(-0.5, (1.0, 1.0, 1.0))
-scene.set_background_color((1.0, 1.0, 1.0))
-scene.set_directional_light((1, 1, 1), 1, (1.0, 1.0, 1.0))
+night = True
+exposure = 10 if night else 1.2
+scene = Scene(exposure=exposure, voxel_edges=0)
+scene.set_floor(-0.85, (1.0, 1.0, 1.0))
+if night:
+    scene.set_directional_light((1, 1, 1), 0.1, vec3(0.001, 0.001, 0.001))
+    scene.set_background_color(vec3(0.05, 0.05, 0.05))
+else:
+    scene.set_directional_light((-1, 1, 0.3), 0.2, vec3(1, 1, 1))
+    scene.set_background_color(vec3(0.5, 0.5, 0.4))
 
 
 @ti.func
@@ -76,18 +82,15 @@ def initialize_voxels():
     build_door(vec3(d_, 8, d_ + 3), 2, 2, vec3(0.95, 0.98, 0.9), vec3(0), 1, 1)
     build_fire(vec3(d_, 8, d_ + 4))
     build_fire(vec3(-d_, 8, d_ + 4))
-
     build_block(vec3(-d_ - 9, -1, -d_ - 9), vec3(d_ + 9, -1, d_ + 9), vec3(0.85, 1, 0.44),
                 vec3(0.1), 0.8)
     build_block(vec3(-d_ - 9, -2, -d_ - 9), vec3(d_ + 9, -2, d_ + 9), vec3(0.58, 0.5, 0.31),
                 vec3(0.03), 0.8)
     build_block(vec3(-4, -1, d_ - 2), vec3(4, -1, d_ + 9), vec3(0.6, 0.6, 0.6), vec3(0.03), 0.8)
-
     build_fire(vec3(d_ // 2, 7, d_ + 3))
     build_fire(vec3(-d_ // 2, 7, d_ + 3))
     build_fire(vec3(9, 13, 9))
     build_fire(vec3(-9, 13, 9))
-
     scene.set_voxel(vec3(-1, 4, d_), 1, vec3(0.43, 0.352, 0.156) + vec3(0.2))
     scene.set_voxel(vec3(1, 4, d_), 1, vec3(0.43, 0.352, 0.156) + vec3(0.2))
 
