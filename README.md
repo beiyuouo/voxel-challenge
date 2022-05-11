@@ -1,5 +1,9 @@
 # <a name="title">Taichi Voxel Challenge</a>
 
+Blog for pac man and foreness: [https://blog.bj-yan.top/p/blog-taichi-voxel-challenge-2022/](https://blog.bj-yan.top/p/blog-taichi-voxel-challenge-2022/)
+
+Blog for pvz: [https://blog.bj-yan.top/p/blog-taichi-voxel-challenge-2022-pvz/](https://blog.bj-yan.top/p/blog-taichi-voxel-challenge-2022-pvz/)
+
 ## Voxel Pac-man in `pac-man.py`
 
 <p align="center">
@@ -19,6 +23,17 @@
 <p align="center">
 <img src="images/demo-fortress-2.jpg" width="75%"></img>
 </p>
+
+## Voxel PVZ in `pvz.py`
+
+<p align="center">
+<img src="images/demo-pvz-1.jpg" width="75%"></img>
+</p>
+
+<p align="center">
+<img src="images/demo-pvz-2.jpg" width="75%"></img>
+</p>
+
 
 We invite you to create your voxel artwork, by putting your [Taichi](https://github.com/taichi-dev/taichi) code in `main.py`!
 
